@@ -1,0 +1,251 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+    touch-action: none;
+}
+
+#game-container {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    height: 100vh;
+    max-height: 600px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+    overflow: hidden;
+}
+
+@media (max-width: 768px) {
+    #game-container {
+        width: 100vw;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+}
+
+#gameCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.95);
+    z-index: 10;
+}
+
+.screen.hidden {
+    display: none;
+}
+
+h1 {
+    font-size: 48px;
+    color: #667eea;
+    margin-bottom: 30px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+h2 {
+    font-size: 28px;
+    color: #764ba2;
+    margin-bottom: 20px;
+}
+
+#playerStats {
+    background: #f8f9fa;
+    padding: 30px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 15px 0;
+    font-size: 18px;
+}
+
+.stat-item span {
+    margin-right: 20px;
+    font-weight: bold;
+}
+
+button {
+    padding: 12px 24px;
+    font-size: 16px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+button:hover {
+    background: #764ba2;
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+#startButton {
+    font-size: 24px;
+    padding: 15px 40px;
+}
+
+.coin-display {
+    margin-top: 20px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #f39c12;
+}
+
+#gameUI {
+    background: transparent;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 20px;
+    pointer-events: none;
+}
+
+#gameUI > * {
+    pointer-events: all;
+}
+
+#scoreDisplay, #coinDisplay {
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    margin-bottom: 10px;
+}
+
+#pauseButton {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+#gameOver p {
+    font-size: 24px;
+    margin: 10px 0;
+}
+
+/* 모바일 컨트롤 */
+#mobileControls {
+    position: absolute;
+    bottom: 30px;
+    left: 0;
+    right: 0;
+    display: none;
+    justify-content: space-around;
+    padding: 0 20px;
+    gap: 20px;
+}
+
+.control-btn {
+    flex: 1;
+    max-width: 150px;
+    padding: 20px;
+    font-size: 20px;
+    font-weight: bold;
+    background: rgba(102, 126, 234, 0.9);
+    color: white;
+    border: 3px solid white;
+    border-radius: 15px;
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+}
+
+.control-btn:active {
+    background: rgba(118, 75, 162, 0.9);
+    transform: scale(0.95);
+}
+
+@media (max-width: 768px) {
+    #mobileControls {
+        display: flex;
+    }
+    
+    h1 {
+        font-size: 36px;
+    }
+    
+    h2 {
+        font-size: 24px;
+    }
+    
+    #playerStats {
+        padding: 20px;
+        width: 90%;
+    }
+    
+    .stat-item {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .stat-item span {
+        margin-right: 0;
+    }
+    
+    button {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+    
+    #startButton {
+        font-size: 20px;
+        padding: 12px 30px;
+    }
+    
+    #scoreDisplay, #coinDisplay {
+        font-size: 18px;
+    }
+    
+    #pauseButton {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 28px;
+    }
+    
+    #playerStats {
+        padding: 15px;
+    }
+    
+    .stat-item {
+        font-size: 16px;
+    }
+}

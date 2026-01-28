@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>정태의 지각</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        
+        <!-- 메인 메뉴 -->
+        <div id="mainMenu" class="screen">
+            <h1>정태의 지각</h1>
+            <div id="playerStats">
+                <h2>정태 강화</h2>
+                <div class="stat-item">
+                    <span>체력: <span id="healthLevel">1</span></span>
+                    <button onclick="game.upgradeHealth()">강화 (100 코인)</button>
+                </div>
+                <div class="stat-item">
+                    <span>속도: <span id="speedLevel">1</span></span>
+                    <button onclick="game.upgradeSpeed()">강화 (100 코인)</button>
+                </div>
+                <div class="stat-item">
+                    <span>등급: <span id="gradeLevel">F</span></span>
+                </div>
+                <div class="coin-display">
+                    <span>보유 코인: <span id="totalCoins">0</span></span>
+                </div>
+            </div>
+            <button id="startButton" onclick="game.startGame()">게임 시작</button>
+        </div>
+        
+        <!-- 게임 UI -->
+        <div id="gameUI" class="screen hidden">
+            <div id="scoreDisplay">점수: <span id="score">0</span></div>
+            <div id="coinDisplay">코인: <span id="coins">0</span></div>
+            <button id="pauseButton" onclick="game.togglePause()">일시정지</button>
+            
+            <!-- 모바일 컨트롤 -->
+            <div id="mobileControls">
+                <button id="jumpButton" class="control-btn">점프</button>
+                <button id="duckButton" class="control-btn">앉기</button>
+            </div>
+        </div>
+        
+        <!-- 게임 오버 -->
+        <div id="gameOver" class="screen hidden">
+            <h2>게임 오버!</h2>
+            <p>점수: <span id="finalScore">0</span></p>
+            <p>획득 코인: <span id="earnedCoins">0</span></p>
+            <button onclick="game.returnToMenu()">메인 메뉴</button>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
