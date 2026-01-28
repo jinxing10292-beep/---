@@ -34,7 +34,7 @@ class Game {
         this.gravity = 0.8;
         this.jumpPower = -15;
         this.groundY = 400;
-        this.gameSpeed = 5 + this.stats.speed;
+        this.gameSpeed = 3 + (this.stats.speed * 0.3);
         this.maxHealth = 100 + (this.stats.health * 10);
         this.currentHealth = this.maxHealth;
         this.isInvincible = false;
@@ -226,7 +226,7 @@ class Game {
         this.coins = 0;
         this.maxHealth = 100 + (this.stats.health * 10);
         this.currentHealth = this.maxHealth;
-        this.gameSpeed = 5 + this.stats.speed;
+        this.gameSpeed = 3 + (this.stats.speed * 0.3);
         this.obstacles = [];
         this.items = [];
         this.obstacleTimer = 0;
@@ -304,7 +304,7 @@ class Game {
         
         // 장애물 생성 (지상 + 공중)
         this.obstacleTimer++;
-        if (this.obstacleTimer > 100) {
+        if (this.obstacleTimer > 120) {
             const isAirObstacle = Math.random() > 0.6;
             this.obstacles.push({
                 x: this.canvas.width,
@@ -319,7 +319,7 @@ class Game {
         
         // 아이템(시험지) 생성
         this.itemTimer++;
-        if (this.itemTimer > 80) {
+        if (this.itemTimer > 100) {
             const yPos = Math.random() > 0.5 ? this.groundY - 50 : this.groundY - 100;
             this.items.push({
                 x: this.canvas.width,
