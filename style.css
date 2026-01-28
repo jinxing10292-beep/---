@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
+
 * {
     margin: 0;
     padding: 0;
@@ -5,8 +7,9 @@
 }
 
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: 'Noto Sans KR', 'Arial', sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-attachment: fixed;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -15,16 +18,33 @@ body {
     touch-action: none;
 }
 
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
 #game-container {
     position: relative;
     width: 100%;
     max-width: 800px;
     height: 100vh;
     max-height: 600px;
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+    background: linear-gradient(180deg, #e3f2fd 0%, #fff9c4 100%);
+    border-radius: 20px;
+    box-shadow: 
+        0 20px 60px rgba(0,0,0,0.3),
+        0 0 0 1px rgba(255,255,255,0.5) inset;
     overflow: hidden;
+    z-index: 1;
 }
 
 @media (max-width: 768px) {
@@ -62,22 +82,38 @@ body {
 
 h1 {
     font-size: 48px;
+    font-weight: 900;
     color: #667eea;
     margin-bottom: 30px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    text-shadow: 
+        3px 3px 0px #764ba2,
+        6px 6px 10px rgba(0,0,0,0.2);
+    letter-spacing: -1px;
+    animation: titleBounce 2s ease-in-out infinite;
+}
+
+@keyframes titleBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
 }
 
 h2 {
     font-size: 28px;
+    font-weight: 700;
     color: #764ba2;
     margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
 }
 
 #playerStats {
-    background: #f8f9fa;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
     padding: 30px;
-    border-radius: 10px;
+    border-radius: 20px;
     margin-bottom: 20px;
+    box-shadow: 
+        0 10px 30px rgba(0,0,0,0.1),
+        0 0 0 1px rgba(102, 126, 234, 0.1) inset;
+    border: 2px solid rgba(102, 126, 234, 0.2);
 }
 
 .stat-item {
@@ -96,26 +132,60 @@ h2 {
 button {
     padding: 12px 24px;
     font-size: 16px;
-    background: #667eea;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s;
+    box-shadow: 
+        0 4px 15px rgba(102, 126, 234, 0.4),
+        0 0 0 1px rgba(255,255,255,0.2) inset;
+    position: relative;
+    overflow: hidden;
+}
+
+button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+}
+
+button:hover::before {
+    left: 100%;
 }
 
 button:hover {
-    background: #764ba2;
-    transform: translateY(-2px);
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    transform: translateY(-3px);
+    box-shadow: 
+        0 6px 20px rgba(102, 126, 234, 0.5),
+        0 0 0 1px rgba(255,255,255,0.3) inset;
 }
 
 button:active {
-    transform: translateY(0);
+    transform: translateY(-1px);
+    box-shadow: 
+        0 2px 10px rgba(102, 126, 234, 0.4),
+        0 0 0 1px rgba(255,255,255,0.2) inset;
 }
 
 #startButton {
     font-size: 24px;
-    padding: 15px 40px;
+    padding: 18px 50px;
+    border-radius: 15px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
+    50% { box-shadow: 0 4px 25px rgba(102, 126, 234, 0.6); }
 }
 
 .coin-display {
@@ -139,10 +209,71 @@ button:active {
 
 #scoreDisplay, #coinDisplay {
     font-size: 24px;
-    font-weight: bold;
+    font-weight: 900;
     color: white;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    text-shadow: 
+        2px 2px 0px rgba(0,0,0,0.3),
+        4px 4px 8px rgba(0,0,0,0.5);
     margin-bottom: 10px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9));
+    padding: 12px 20px;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+#healthBarContainer {
+    position: absolute;
+    top: 80px;
+    left: 20px;
+    width: 250px;
+    height: 30px;
+    background: linear-gradient(135deg, rgba(0,0,0,0.3), rgba(0,0,0,0.5));
+    border-radius: 15px;
+    padding: 3px;
+    box-shadow: 
+        0 4px 15px rgba(0,0,0,0.3),
+        0 0 0 2px rgba(255,255,255,0.3) inset;
+}
+
+#healthBar {
+    height: 100%;
+    background: linear-gradient(90deg, #ff6b6b 0%, #ff8787 50%, #ffa5a5 100%);
+    border-radius: 12px;
+    transition: width 0.3s ease;
+    box-shadow: 
+        0 0 10px rgba(255, 107, 107, 0.5),
+        0 0 0 1px rgba(255,255,255,0.3) inset;
+    position: relative;
+    overflow: hidden;
+}
+
+#healthBar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: healthShine 2s infinite;
+}
+
+@keyframes healthShine {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+#healthText {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+    font-weight: 900;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    z-index: 1;
 }
 
 #pauseButton {

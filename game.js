@@ -35,14 +35,22 @@ class Game {
         this.jumpPower = -15;
         this.groundY = 400;
         this.gameSpeed = 5 + this.stats.speed;
-        this.maxHealth = 3 + this.stats.health;
+        this.maxHealth = 100 + (this.stats.health * 10);
         this.currentHealth = this.maxHealth;
+        this.isInvincible = false;
+        this.invincibleTimer = 0;
+        this.damageFlash = false;
+        
+        // 플레이어 이미지 (로얄티 프리 러너 이미지 URL)
+        this.playerImg = new Image();
+        this.playerImg.src = 'https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/javascript/javascript.png';
         
         // 장애물과 아이템
         this.obstacles = [];
         this.items = [];
         this.obstacleTimer = 0;
         this.itemTimer = 0;
+        this.backgroundOffset = 0;
         
         this.setupControls();
         this.setupMobileControls();
@@ -216,15 +224,20 @@ class Game {
         this.state = 'playing';
         this.score = 0;
         this.coins = 0;
+        this.maxHealth = 100 + (this.stats.health * 10);
         this.currentHealth = this.maxHealth;
         this.gameSpeed = 5 + this.stats.speed;
         this.obstacles = [];
         this.items = [];
         this.obstacleTimer = 0;
         this.itemTimer = 0;
+        this.isInvincible = false;
+        this.invincibleTimer = 0;
+        this.backgroundOffset = 0;
         
         document.getElementById('mainMenu').classList.add('hidden');
         document.getElementById('gameUI').classList.remove('hidden');
+        this.updateHealthBar();
         
         this.gameLoop();
     }
@@ -261,6 +274,22 @@ class Game {
         this.score++;
         document.getElementById('score').textContent = this.score;
         
+        // 배경 스크롤
+        this.backgroundOffset += this.gameSpeed;
+        if (this.backgroundOffset > this.canvas.width) {
+            this.backgroundOffset = 0;
+        }
+        
+        // 무적 타이머
+        if (this.isInvincible) {
+            this.invincibleTimer--;
+            this.damageFlash = Math.floor(this.invincibleTimer / 5) % 2 === 0;
+            if (this.invincibleTimer <= 0) {
+                this.isInvincible = false;
+                this.damageFlash = false;
+            }
+        }
+        
         // 플레이어 물리
         if (this.player.isJumping) {
             this.player.velocityY += this.gravity;
@@ -273,15 +302,17 @@ class Game {
             }
         }
         
-        // 장애물 생성
+        // 장애물 생성 (지상 + 공중)
         this.obstacleTimer++;
         if (this.obstacleTimer > 100) {
+            const isAirObstacle = Math.random() > 0.6;
             this.obstacles.push({
                 x: this.canvas.width,
-                y: this.groundY + 20,
+                y: isAirObstacle ? this.groundY - 80 : this.groundY + 20,
                 width: 40,
-                height: 60,
-                type: 'obstacle'
+                height: isAirObstacle ? 40 : 60,
+                type: 'obstacle',
+                isAir: isAirObstacle
             });
             this.obstacleTimer = 0;
         }
@@ -304,14 +335,12 @@ class Game {
         for (let i = this.obstacles.length - 1; i >= 0; i--) {
             this.obstacles[i].x -= this.gameSpeed;
             
-            if (this.checkCollision(this.player, this.obstacles[i])) {
-                this.currentHealth--;
-                this.obstacles.splice(i, 1);
-                
-                if (this.currentHealth <= 0) {
-                    this.gameOver();
-                }
-            } else if (this.obstacles[i].x + this.obstacles[i].width < 0) {
+            if (!this.isInvincible && this.checkCollision(this.player, this.obstacles[i])) {
+                this.takeDamage(10);
+            }
+            
+            // 화면 밖으로 나간 장애물만 제거
+            if (this.obstacles[i].x + this.obstacles[i].width < -50) {
                 this.obstacles.splice(i, 1);
             }
         }
@@ -334,6 +363,31 @@ class Game {
         }
     }
     
+    takeDamage(amount) {
+        this.currentHealth -= amount;
+        this.isInvincible = true;
+        this.invincibleTimer = 60; // 1초 무적
+        this.updateHealthBar();
+        
+        if (this.currentHealth <= 0) {
+            this.currentHealth = 0;
+            this.gameOver();
+        }
+    }
+    
+    updateHealthBar() {
+        const healthPercent = (this.currentHealth / this.maxHealth) * 100;
+        const healthBar = document.getElementById('healthBar');
+        const healthText = document.getElementById('healthText');
+        
+        if (healthBar) {
+            healthBar.style.width = healthPercent + '%';
+        }
+        if (healthText) {
+            healthText.textContent = Math.max(0, this.currentHealth) + ' / ' + this.maxHealth;
+        }
+    }
+    
     checkCollision(rect1, rect2) {
         return rect1.x < rect2.x + rect2.width &&
                rect1.x + rect1.width > rect2.x &&
@@ -342,52 +396,208 @@ class Game {
     }
     
     draw() {
-        // 배경
-        this.ctx.fillStyle = '#87CEEB';
+        // 하늘 그라데이션 배경
+        const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+        gradient.addColorStop(0, '#87CEEB');
+        gradient.addColorStop(0.7, '#E0F6FF');
+        gradient.addColorStop(1, '#FFF9E6');
+        this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // 땅
-        this.ctx.fillStyle = '#8B4513';
+        // 구름 효과
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        for (let i = 0; i < 3; i++) {
+            const cloudX = ((this.backgroundOffset * 0.3) + i * 300) % (this.canvas.width + 200) - 100;
+            this.drawCloud(cloudX, 50 + i * 40);
+        }
+        
+        // 땅 (그라데이션)
+        const groundGradient = this.ctx.createLinearGradient(0, this.groundY + 80, 0, this.canvas.height);
+        groundGradient.addColorStop(0, '#8B7355');
+        groundGradient.addColorStop(0.3, '#6B5345');
+        groundGradient.addColorStop(1, '#4A3C2F');
+        this.ctx.fillStyle = groundGradient;
         this.ctx.fillRect(0, this.groundY + 80, this.canvas.width, 120);
         
-        // 플레이어 (정태)
-        this.ctx.fillStyle = '#FF6B6B';
-        this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
-        this.ctx.fillStyle = '#000';
-        this.ctx.font = '12px Arial';
-        this.ctx.fillText('정태', this.player.x + 10, this.player.y + 35);
+        // 땅 위 잔디
+        this.ctx.fillStyle = '#7CB342';
+        this.ctx.fillRect(0, this.groundY + 75, this.canvas.width, 10);
         
-        // 장애물
-        this.ctx.fillStyle = '#333';
+        // 잔디 디테일
+        this.ctx.strokeStyle = '#558B2F';
+        this.ctx.lineWidth = 2;
+        for (let i = 0; i < this.canvas.width; i += 20) {
+            const grassX = (i - this.backgroundOffset) % this.canvas.width;
+            this.ctx.beginPath();
+            this.ctx.moveTo(grassX, this.groundY + 80);
+            this.ctx.lineTo(grassX + 3, this.groundY + 70);
+            this.ctx.stroke();
+        }
+        
+        // 플레이어 (정태) - 깜빡임 효과
+        if (!this.damageFlash) {
+            // 그림자
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            this.ctx.beginPath();
+            this.ctx.ellipse(this.player.x + 25, this.groundY + 85, 20, 5, 0, 0, Math.PI * 2);
+            this.ctx.fill();
+            
+            // 플레이어 몸체
+            this.ctx.fillStyle = '#FF6B6B';
+            this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
+            
+            // 외곽선
+            this.ctx.strokeStyle = '#C92A2A';
+            this.ctx.lineWidth = 3;
+            this.ctx.strokeRect(this.player.x, this.player.y, this.player.width, this.player.height);
+            
+            // 얼굴
+            this.ctx.fillStyle = '#FFE0B2';
+            this.ctx.fillRect(this.player.x + 10, this.player.y + 10, 30, 25);
+            
+            // 눈
+            this.ctx.fillStyle = '#000';
+            this.ctx.fillRect(this.player.x + 15, this.player.y + 18, 5, 5);
+            this.ctx.fillRect(this.player.x + 30, this.player.y + 18, 5, 5);
+            
+            // 입
+            this.ctx.strokeStyle = '#000';
+            this.ctx.lineWidth = 2;
+            this.ctx.beginPath();
+            this.ctx.arc(this.player.x + 25, this.player.y + 25, 5, 0, Math.PI);
+            this.ctx.stroke();
+            
+            // 이름
+            this.ctx.fillStyle = '#FFF';
+            this.ctx.font = 'bold 12px "Noto Sans KR", Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText('정태', this.player.x + 25, this.player.y + 50);
+        } else {
+            // 피격 시 빨간색/검정색 깜빡임
+            const flashColor = Math.floor(this.invincibleTimer / 3) % 2 === 0 ? '#FF0000' : '#000000';
+            this.ctx.fillStyle = flashColor;
+            this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
+        }
+        
+        // 장애물 (더 디테일하게)
         this.obstacles.forEach(obs => {
-            this.ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
-        });
-        
-        // 아이템
-        this.items.forEach(item => {
-            if (item.type === 'paper') {
-                this.ctx.fillStyle = '#FFD700';
-                this.ctx.fillRect(item.x, item.y, item.width, item.height);
-                this.ctx.fillStyle = '#000';
-                this.ctx.font = '20px Arial';
-                this.ctx.fillText('📄', item.x, item.y + 25);
-            } else {
-                this.ctx.fillStyle = '#FFA500';
+            if (obs.isAir) {
+                // 공중 장애물 (새)
+                this.ctx.fillStyle = '#424242';
                 this.ctx.beginPath();
-                this.ctx.arc(item.x + 15, item.y + 15, 15, 0, Math.PI * 2);
+                this.ctx.ellipse(obs.x + 20, obs.y + 20, 20, 15, 0, 0, Math.PI * 2);
                 this.ctx.fill();
-                this.ctx.fillStyle = '#000';
-                this.ctx.font = '16px Arial';
-                this.ctx.fillText('C', item.x + 10, item.y + 20);
+                
+                // 날개
+                this.ctx.fillStyle = '#616161';
+                const wingOffset = Math.sin(Date.now() / 100) * 5;
+                this.ctx.beginPath();
+                this.ctx.ellipse(obs.x + 5, obs.y + 20, 10, 5, wingOffset, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.beginPath();
+                this.ctx.ellipse(obs.x + 35, obs.y + 20, 10, 5, -wingOffset, 0, Math.PI * 2);
+                this.ctx.fill();
+            } else {
+                // 지상 장애물 (바위)
+                const rockGradient = this.ctx.createLinearGradient(obs.x, obs.y, obs.x, obs.y + obs.height);
+                rockGradient.addColorStop(0, '#757575');
+                rockGradient.addColorStop(0.5, '#616161');
+                rockGradient.addColorStop(1, '#424242');
+                this.ctx.fillStyle = rockGradient;
+                
+                // 바위 모양
+                this.ctx.beginPath();
+                this.ctx.moveTo(obs.x + obs.width / 2, obs.y);
+                this.ctx.lineTo(obs.x + obs.width, obs.y + obs.height * 0.7);
+                this.ctx.lineTo(obs.x + obs.width * 0.8, obs.y + obs.height);
+                this.ctx.lineTo(obs.x + obs.width * 0.2, obs.y + obs.height);
+                this.ctx.lineTo(obs.x, obs.y + obs.height * 0.7);
+                this.ctx.closePath();
+                this.ctx.fill();
+                
+                // 바위 외곽선
+                this.ctx.strokeStyle = '#212121';
+                this.ctx.lineWidth = 2;
+                this.ctx.stroke();
+                
+                // 바위 디테일
+                this.ctx.fillStyle = '#9E9E9E';
+                this.ctx.beginPath();
+                this.ctx.arc(obs.x + 15, obs.y + 20, 5, 0, Math.PI * 2);
+                this.ctx.fill();
             }
         });
         
-        // 체력 표시
-        this.ctx.fillStyle = '#FF0000';
-        this.ctx.font = '20px Arial';
-        for (let i = 0; i < this.currentHealth; i++) {
-            this.ctx.fillText('❤️', 10 + i * 30, 30);
-        }
+        // 아이템 (더 예쁘게)
+        this.items.forEach(item => {
+            if (item.type === 'paper') {
+                // 시험지 (반짝이는 효과)
+                const paperGradient = this.ctx.createLinearGradient(item.x, item.y, item.x + item.width, item.y + item.height);
+                paperGradient.addColorStop(0, '#FFD700');
+                paperGradient.addColorStop(0.5, '#FFF176');
+                paperGradient.addColorStop(1, '#FFD700');
+                this.ctx.fillStyle = paperGradient;
+                this.ctx.fillRect(item.x, item.y, item.width, item.height);
+                
+                // 외곽선
+                this.ctx.strokeStyle = '#F57F17';
+                this.ctx.lineWidth = 2;
+                this.ctx.strokeRect(item.x, item.y, item.width, item.height);
+                
+                // 반짝임 효과
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                const sparkle = Math.sin(Date.now() / 100) * 0.5 + 0.5;
+                this.ctx.globalAlpha = sparkle;
+                this.ctx.fillRect(item.x + 5, item.y + 5, 5, 5);
+                this.ctx.globalAlpha = 1;
+                
+                // 텍스트
+                this.ctx.fillStyle = '#000';
+                this.ctx.font = 'bold 20px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('📄', item.x + 15, item.y + 22);
+            } else {
+                // 코인 (회전 효과)
+                const rotation = (Date.now() / 500) % (Math.PI * 2);
+                const scale = Math.abs(Math.cos(rotation));
+                
+                this.ctx.save();
+                this.ctx.translate(item.x + 15, item.y + 15);
+                this.ctx.scale(scale, 1);
+                
+                // 코인 그라데이션
+                const coinGradient = this.ctx.createRadialGradient(0, 0, 5, 0, 0, 15);
+                coinGradient.addColorStop(0, '#FFD700');
+                coinGradient.addColorStop(0.5, '#FFA500');
+                coinGradient.addColorStop(1, '#FF8C00');
+                this.ctx.fillStyle = coinGradient;
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, 15, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 코인 외곽선
+                this.ctx.strokeStyle = '#CC7000';
+                this.ctx.lineWidth = 2;
+                this.ctx.stroke();
+                
+                // C 문자
+                this.ctx.fillStyle = '#FFF';
+                this.ctx.font = 'bold 16px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillText('C', 0, 0);
+                
+                this.ctx.restore();
+            }
+        });
+    }
+    
+    drawCloud(x, y) {
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, 20, 0, Math.PI * 2);
+        this.ctx.arc(x + 25, y, 25, 0, Math.PI * 2);
+        this.ctx.arc(x + 50, y, 20, 0, Math.PI * 2);
+        this.ctx.fill();
     }
     
     gameOver() {
