@@ -15,8 +15,9 @@ class Game {
         this.stats = {
             health: parseInt(localStorage.getItem('health')) || 1,
             speed: parseInt(localStorage.getItem('speed')) || 1,
-            grade: this.calculateGrade()
+            grade: 'F'
         };
+        this.stats.grade = this.calculateGrade();
         
         // 플레이어
         this.player = {
@@ -45,7 +46,16 @@ class Game {
         
         this.setupControls();
         this.setupMobileControls();
+        this.setupButtons();
         this.updateStatsDisplay();
+    }
+    
+    setupButtons() {
+        document.getElementById('upgradeHealthBtn').addEventListener('click', () => this.upgradeHealth());
+        document.getElementById('upgradeSpeedBtn').addEventListener('click', () => this.upgradeSpeed());
+        document.getElementById('startButton').addEventListener('click', () => this.startGame());
+        document.getElementById('pauseButton').addEventListener('click', () => this.togglePause());
+        document.getElementById('returnMenuBtn').addEventListener('click', () => this.returnToMenu());
     }
     
     resizeCanvas() {
