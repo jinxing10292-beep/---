@@ -164,6 +164,7 @@ class Game {
     }
     
     calculateGrade() {
+        if (!this.stats) return 'F';
         const total = this.stats.health + this.stats.speed;
         if (total >= 20) return 'S';
         if (total >= 15) return 'A';
